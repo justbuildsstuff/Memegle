@@ -353,3 +353,52 @@ code { background: var(--chip); padding: 1px 5px; border-radius: 4px; font-size:
 .lens-busy { position: fixed; inset: 0; background: var(--overlay); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 90; gap: 12px; font-size: 16px; }
 .lens-busy .progress { width: 280px; background: rgba(255,255,255,.3); }
 .lens-busy .progress > div { background: #fff; }
+
+/* ---------- live search additions ---------- */
+.spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--border); border-top-color: var(--blue); border-radius: 50%; animation: spin .8s linear infinite; vertical-align: -2px; margin-left: 6px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.more { text-align: center; margin: 10px 0 30px; }
+.all-grid { display: flex; gap: 40px; align-items: flex-start; }
+.all-main { max-width: 652px; flex: 1; min-width: 0; }
+.kp { width: 370px; flex: none; }
+@media (max-width: 1100px) { .kp { display: none; } }
+.kp-card { border: 1px solid var(--border-2); border-radius: 12px; padding: 16px 20px; margin-bottom: 14px; background: var(--bg-elev); }
+.kp-card h3 { margin: 0 0 2px; font-size: 22px; font-weight: 400; }
+.kp-card .kp-sub { color: var(--text-3); font-size: 14px; margin-bottom: 10px; }
+.kp-card p { margin: 0; font-size: 14px; line-height: 22px; color: var(--text-2); }
+.kp-img { width: 100%; max-height: 220px; object-fit: cover; border-radius: 8px; margin-bottom: 12px; }
+.kp-links a { display: flex; align-items: center; gap: 10px; padding: 8px 0; color: var(--link); font-size: 14px; border-top: 1px solid var(--border-2); }
+.kp-links a:first-of-type { border-top: 0; }
+.kp-links a img { width: 18px; height: 18px; border-radius: 4px; }
+.kp-links h3 { font-size: 16px; margin-bottom: 6px; }
+.strip-block { margin-bottom: 26px; }
+.strip { display: flex; gap: 8px; overflow: hidden; margin: 8px 0; border-radius: 12px; }
+.strip img { height: 150px; width: calc(150px * var(--ar, 1.2)); flex: 0 1 auto; min-width: 90px; max-width: 240px; object-fit: cover; border-radius: 10px; cursor: pointer; background: var(--bg-soft); }
+.strip img:hover { opacity: .92; }
+.strip-more { font-size: 14px; }
+.tpl-row { display: flex; gap: 10px; overflow-x: auto; padding: 8px 0 4px; }
+.tpl { flex: none; width: 110px; color: var(--text-2); font-size: 12px; text-align: center; }
+.tpl img { width: 110px; height: 110px; object-fit: cover; border-radius: 10px; background: var(--bg-soft); margin-bottom: 4px; }
+.tpl span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 15px; }
+.pasf { font-size: 20px; font-weight: 400; margin: 8px 0 12px; }
+.pasf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; }
+.pasf-grid .chip { height: 44px; border-radius: 8px; justify-content: flex-start; background: var(--bg-soft); border-color: transparent; font-size: 14px; }
+.more-sources { color: var(--text-3); font-size: 13px; }
+.g-head .fav { object-fit: contain; padding: 3px; background: var(--bg-soft); }
+.img-card.broken { display: none; }
+.v-title { font-size: 18px; font-weight: 400; margin: 12px 0 4px; line-height: 1.35; }
+.v-body { color: var(--text-2); font-size: 14px; line-height: 1.5; margin: 6px 0; }
+.detail .meta span + span::before { content: ""; }
+.detail .actions .gbtn { display: inline-flex; align-items: center; gap: 6px; }
+.detail .actions a.gbtn:hover { text-decoration: none; }
+.src-row { padding: 10px 0; border-bottom: 1px solid var(--border-2); display: grid; grid-template-columns: 1fr; gap: 6px; }
+.src-row:last-of-type { border-bottom: 0; }
+.src-row .switch b { font-weight: 700; color: var(--text); }
+.src-desc { color: var(--text-3); font-size: 13px; margin-left: 44px; }
+.src-row .ginput { margin-left: 44px; max-width: 420px; }
+.skeleton .thumb-wrap, .skeleton .bar { background: linear-gradient(90deg, var(--chip) 25%, var(--bg-hover) 50%, var(--chip) 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; }
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.skeleton .bar { display: block; height: 12px; border-radius: 6px; margin: 6px 0; width: 90%; }
+.skeleton .bar.short { width: 55%; }
+.skeleton .fav.bar { width: 26px; height: 26px; border-radius: 50%; margin: 0; }
+.result-stats b { color: var(--text); font-weight: 400; }

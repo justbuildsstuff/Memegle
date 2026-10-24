@@ -12,7 +12,7 @@ export const DEFAULT_SETTINGS = {
   openaiBaseUrl: 'https://api.openai.com/v1',
   openaiKey: '',
   openaiModel: 'gpt-4o-mini',
-  autoDescribe: true,
+  autoDescribe: false,
   uploadFolder: 'direct-uploads',
   resultsPerPage: 20,
 };
