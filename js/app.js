@@ -3,14 +3,15 @@
 import {
   loadLibrary, loadSettings, saveSettings, loadHistory, pushHistory, clearHistory, saveMemeFields, resetOverride,
   deleteMeme, addUpload, getEmbedding, putEmbedding, exportLibrary, importLibrary, clearLibrary, libraryStats, DEFAULT_SETTINGS, idb,
-} from './store.js?v=5';
-import { buildIndex, search, suggestions as librarySuggestions, highlight, rankByVector, embeddingText, hashText, tokenize } from './search.js?v=5';
-import { describe, embed, getCaptioner, CAPTION_MODELS, hasWebGPU, isModelCached } from './ai.js?v=5';
+} from './store.js?v=6';
+import { buildIndex, search, suggestions as librarySuggestions, highlight, rankByVector, embeddingText, hashText, tokenize } from './search.js?v=6';
+import { describe, embed, getCaptioner, CAPTION_MODELS, hasWebGPU, isModelCached } from './ai.js?v=6';
 import {
   SOURCE_INFO, DEFAULT_LEMMY_COMMUNITIES, DEFAULT_REDDIT_SUBS, searchLemmy, searchLemmyGlobal, trendingLemmy, trendingMastodon, searchMastodon, searchReddit, fetchRedditPool,
+  searchBluesky, trendingBluesky,
   searchImgflip, fetchImgflip, searchTenor, tenorAutocomplete, searchGiphy, searchImgur, knowledgePanel,
   memeSuggestions, spellCorrection, createSession, favicon, relevance,
-} from './sources.js?v=5';
+} from './sources.js?v=6';
 
 // ------------------------------------------------------------------ icons
 const I = {
@@ -60,7 +61,7 @@ function ago(ts) {
 // ------------------------------------------------------------------ state
 const EXTRA_DEFAULTS = {
   safeSearch: true,
-  sources: { lemmy: true, reddit: true, imgflip: true, mastodon: true, tenor: true, giphy: true, imgur: true, library: true, wiki: true },
+  sources: { lemmy: true, bluesky: true, reddit: true, imgflip: true, mastodon: true, tenor: true, giphy: true, imgur: true, library: true, wiki: true },
   parade: true,
   tenorKey: '', giphyKey: '', imgurClientId: '',
   googleSuggest: true,
@@ -277,7 +278,7 @@ function renderHome(app) {
         <button class="gbtn" data-action="home-search">Memegle Search</button>
         <button class="gbtn" data-action="lucky">I'm Feeling Memey</button>
       </div>
-      <p class="offered">Only memes, live from Lemmy, Reddit, Imgflip${state.settings.tenorKey ? ', Tenor' : ''}${state.settings.giphyKey ? ', Giphy' : ''} and <a href="#/search?tab=library">your own collection</a>.</p>
+      <p class="offered">Only memes, live from Lemmy, Bluesky, Mastodon, Reddit, Imgflip${state.settings.tenorKey ? ', Tenor' : ''}${state.settings.giphyKey ? ', Giphy' : ''} and <a href="#/search?tab=library">your own collection</a>.</p>
     </main>
     <footer class="home-footer">
       <div class="country">Only memes. Nothing else.</div>
@@ -343,6 +344,7 @@ function adaptersFor(q, p, page = 1) {
   const list = [];
   if (!q) {
     if (enabled('lemmy')) list.push({ source: 'lemmy', run: async () => ({ items: await trendingLemmy({ communities: communities().slice(0, 12) }) }) });
+    if (enabled('bluesky')) list.push({ source: 'bluesky', run: async () => ({ items: await trendingBluesky() }) });
     if (enabled('mastodon')) list.push({ source: 'mastodon', run: async () => ({ items: await trendingMastodon() }) });
     if (enabled('reddit')) list.push({ source: 'reddit', run: async () => ({ items: (await fetchRedditPool({ subs: subs().slice(0, 4), count: 30 })).sort(() => Math.random() - 0.5) }) });
     if (enabled('imgflip')) list.push({ source: 'imgflip', run: async () => ({ items: await fetchImgflip() }) });
@@ -351,6 +353,11 @@ function adaptersFor(q, p, page = 1) {
   }
   if (enabled('lemmy')) list.push({ source: 'lemmy', run: ({ onPartial }) => searchLemmy(q, { communities: communities(), sort: p.sort, page, onPartial }) });
   if (enabled('lemmy')) list.push({ source: 'lemmy_global', run: ({ onPartial }) => searchLemmyGlobal(q, { sort: p.sort, page, onPartial }) });
+  if (enabled('bluesky') && (page === 1 || s.sources.bluesky)) list.push({ source: 'bluesky', run: ({ onPartial, session }) => {
+    const cursor = page > 1 ? session.extra.bluesky?.next || '' : '';
+    if (page > 1 && !cursor) return { skipped: true };
+    return searchBluesky(q, { sort: p.sort, cursor, onPartial });
+  } });
   if (page === 1) {
     if (enabled('mastodon')) list.push({ source: 'mastodon', run: () => searchMastodon(q) });
     if (enabled('reddit')) list.push({ source: 'reddit', run: () => searchReddit(q, { subs: subs() }) });
@@ -461,7 +468,7 @@ function renderBody(root, session, p) {
   else parts.push(imageGrid(shown, p));
 
   if (items.length > shown.length) parts.push(`<div class="more"><button class="gbtn" data-action="more">More results (${items.length - shown.length} more loaded)</button></div>`);
-  else if (p.q && session.done && p.tab !== 'library' && p.tab !== 'templates' && (enabled('lemmy') || enabled('tenor') || enabled('giphy') || enabled('imgur')) && session.page < 5) parts.push(`<div class="more"><button class="gbtn" data-action="load-more">Load more from the web</button></div>`);
+  else if (p.q && session.done && p.tab !== 'library' && p.tab !== 'templates' && (enabled('lemmy') || enabled('bluesky') || enabled('tenor') || enabled('giphy') || enabled('imgur')) && session.page < 5) parts.push(`<div class="more"><button class="gbtn" data-action="load-more">Load more from the web</button></div>`);
   root.innerHTML = parts.join('');
   if (p.q && session.done && items.length < 3 && state.settings.googleSuggest) {
     spellCorrection(p.q, { lang: lang() }).then((c) => {
@@ -933,7 +940,7 @@ async function renderSettings(app) {
 
       <h2 id="sources">Sources</h2>
       <div class="card">
-        ${['lemmy', 'reddit', 'imgflip', 'mastodon', 'tenor', 'giphy', 'imgur', 'library'].map(srcRow).join('')}
+        ${['lemmy', 'bluesky', 'reddit', 'imgflip', 'mastodon', 'tenor', 'giphy', 'imgur', 'library'].map(srcRow).join('')}
         <div class="src-row">
           <label class="switch"><input type="checkbox" data-source="wiki" ${s.sources.wiki ? 'checked' : ''}> <img src="${favicon('wikipedia.org')}" alt="" style="width:16px;height:16px"> <b>Wikipedia knowledge panel</b></label>
           <div class="src-desc">Short explanation of the meme next to the results, when Wikipedia has an article.</div>

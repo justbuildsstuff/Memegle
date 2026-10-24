@@ -2,7 +2,7 @@
 // Each adapter returns normalized items:
 // { id, source, kind: 'image'|'gif'|'template', title, body, image, thumb, width, height, url, site, path,
 //   author, score, comments, created, nsfw, tags }
-import { tokenize, stem } from './search.js?v=5';
+import { tokenize, stem } from './search.js?v=6';
 
 export const SOURCE_INFO = {
   lemmy: { label: 'Lemmy', site: 'lemmy.world', needsKey: false, desc: 'Meme communities across the Fediverse (memes, dankmemes, programmer humor, comics...)' },
@@ -11,6 +11,7 @@ export const SOURCE_INFO = {
   tenor: { label: 'Tenor GIFs', site: 'tenor.com', needsKey: true, keyName: 'tenorKey', keyUrl: 'https://developers.google.com/tenor/guides/quickstart', desc: "Google's GIF search. Free API key from Google Cloud." },
   giphy: { label: 'Giphy', site: 'giphy.com', needsKey: true, keyName: 'giphyKey', keyUrl: 'https://developers.giphy.com/dashboard/', desc: 'GIF and sticker search. Free API key.' },
   imgur: { label: 'Imgur', site: 'imgur.com', needsKey: true, keyName: 'imgurClientId', keyUrl: 'https://api.imgur.com/oauth2/addclient', desc: 'Imgur gallery search. Free Client-ID.' },
+  bluesky: { label: 'Bluesky', site: 'bsky.app', needsKey: false, desc: 'Bluesky posts with images or GIFs that say "meme" or carry #memes, ranked by likes' },
   mastodon: { label: 'Mastodon', site: 'mastodon.social', needsKey: false, desc: 'Media posts under #memes, #dankmemes, #shitpost and the hashtag of your search on mastodon.social' },
   library: { label: 'My memes', site: 'memegle', needsKey: false, desc: 'Memes you uploaded or saved in this browser' },
   lemmy_global: { label: 'Lemmy (all meme communities)', site: 'lemmy.world', hidden: true, parent: 'lemmy' },
@@ -107,7 +108,7 @@ export function rank(items, q, { sort = 'relevance' } = {}) {
   }
   // drop posts that only matched a generic word like "meme" (keyed GIF APIs rank server-side, keep them)
   const generic = !qTokens.some((t) => !GENERIC.test(t));
-  if (qTokens.length && !generic) items = items.filter((it) => it.rel > 0 || it.source === 'tenor' || it.source === 'giphy' || it.source === 'mastodon');
+  if (qTokens.length && !generic) items = items.filter((it) => it.rel > 0 || it.source === 'tenor' || it.source === 'giphy' || it.source === 'mastodon' || it.source === 'bluesky');
   if (sort === 'newest') items.sort((a, b) => (b.created || 0) - (a.created || 0));
   else if (sort === 'top') items.sort((a, b) => (b.score || 0) - (a.score || 0));
   else items.sort((a, b) => b.rankScore - a.rankScore);
@@ -205,6 +206,76 @@ export async function trendingLemmy({ communities = DEFAULT_LEMMY_COMMUNITIES.sl
     return (data.posts || []).filter((p) => !p.post.featured_community).map((p) => lemmyItem(p, host)).filter(Boolean);
   }));
   return results.flatMap((r) => (r.status === 'fulfilled' ? r.value : []));
+}
+
+// ---------------------------------------------------------------- Bluesky (public AppView, CORS enabled, no key)
+const BSKY_HOSTS = ['api.bsky.app', 'public.api.bsky.app'];
+const BSKY_NSFW = /^(porn|sexual|nudity|graphic-media|gore)$/;
+function bskyItems(posts) {
+  const out = [];
+  for (const post of posts || []) {
+    const rec = post.record || {};
+    const text = String(rec.text || '').replace(/\s+/g, ' ').trim();
+    const handle = post.author?.handle || 'unknown';
+    const rkey = String(post.uri || '').split('/').pop();
+    const url = `https://bsky.app/profile/${handle}/post/${rkey}`;
+    const labels = [...(post.labels || []), ...(rec.labels?.values || [])].map((l) => l.val || '');
+    const nsfw = labels.some((v) => BSKY_NSFW.test(v));
+    const tags = (rec.tags || []).concat((rec.facets || []).flatMap((f) => (f.features || []).filter((x) => x.tag).map((x) => x.tag))).map((t) => String(t).toLowerCase());
+    const title = (text.replace(/https?:\/\/\S+/g, '').replace(/#\w+/g, '').trim() || `Post by @${handle}`).slice(0, 160);
+    const base = {
+      source: 'bluesky', title, body: '', text: `${text} ${tags.join(' ')}`, url, site: 'bsky.app', path: `@${handle}`,
+      author: post.author?.displayName || handle, score: (post.likeCount || 0) + (post.repostCount || 0), comments: post.replyCount || 0,
+      created: Date.parse(post.indexedAt || rec.createdAt) || 0, nsfw, tags,
+    };
+    const embed = post.embed || {};
+    const images = embed.images || embed.media?.images || [];
+    images.forEach((im, i) => out.push({
+      ...base, id: `bsky:${post.uri}#${i}`, kind: 'image', image: im.fullsize, thumb: im.thumb || im.fullsize,
+      width: im.aspectRatio?.width, height: im.aspectRatio?.height, body: im.alt || '', text: `${base.text} ${im.alt || ''}`,
+    }));
+    const ext = embed.external || embed.media?.external;
+    if (ext && /media\.tenor\.com|\.gif(\?|$)/i.test(ext.uri || '') && (ext.thumb || ext.uri)) {
+      const m = /[?&]ww=(\d+)&hh=(\d+)/.exec(ext.uri || '');
+      out.push({ ...base, id: `bsky:${post.uri}#gif`, kind: 'gif', image: ext.uri, thumb: ext.thumb || ext.uri, width: m ? +m[1] : undefined, height: m ? +m[2] : undefined, body: ext.title || '' });
+    }
+  }
+  return out;
+}
+async function bskyGet(params) {
+  let err;
+  for (const host of BSKY_HOSTS) {
+    const u = `https://${host}/xrpc/app.bsky.feed.searchPosts?${params}`;
+    try { return await cached(u, 5 * 60000, () => getJSON(u, { timeout: 10000 })); } catch (e) { err = e; }
+  }
+  throw err;
+}
+export async function searchBluesky(q, { sort = 'relevance', cursor = '', limit = 50, onPartial } = {}) {
+  const base = cleanQuery(q);
+  const bsort = sort === 'newest' ? 'latest' : 'top';
+  // two views: posts that say "meme", and posts tagged #memes
+  const queries = [
+    `q=${encodeURIComponent(base + ' meme')}&sort=${bsort}&limit=${limit}${cursor ? '&cursor=' + encodeURIComponent(cursor) : ''}`,
+    `q=${encodeURIComponent(base)}&tag=memes&sort=${bsort}&limit=${limit}`,
+    `q=${encodeURIComponent(base)}&tag=meme&sort=${bsort}&limit=${Math.min(limit, 25)}`,
+  ];
+  const results = await Promise.allSettled(queries.map(async (p, i) => {
+    const d = await bskyGet(p);
+    const items = bskyItems(d.posts);
+    onPartial?.(items);
+    return { items, cursor: i === 0 ? d.cursor : undefined };
+  }));
+  const items = results.flatMap((r) => (r.status === 'fulfilled' ? r.value.items : []));
+  const next = results[0].status === 'fulfilled' ? results[0].value.cursor : '';
+  return { items, next, failed: results.filter((r) => r.status === 'rejected').length, total: queries.length };
+}
+export async function trendingBluesky({ limit = 50 } = {}) {
+  const results = await Promise.allSettled([
+    bskyGet(`q=meme&tag=memes&sort=top&limit=${limit}`),
+    bskyGet(`q=memes&sort=latest&limit=${limit}`),
+    bskyGet(`q=meme&tag=dankmemes&sort=top&limit=25`),
+  ]);
+  return results.flatMap((r) => (r.status === 'fulfilled' ? bskyItems(r.value.posts) : []));
 }
 
 // ---------------------------------------------------------------- Mastodon hashtag timelines (public, CORS enabled)

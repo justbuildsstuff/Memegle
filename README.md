@@ -14,6 +14,7 @@ Memegle grew out of [Meme Search](https://github.com/meme-search/meme-search) by
 
 - **Live search** across the Fediverse's meme communities on Lemmy (27 communities searched directly,
   plus a full-text search on seven instances restricted to image posts in meme-like communities),
+  Bluesky (posts with images or GIFs that say "meme" or carry #memes, ranked by likes),
   Mastodon hashtag timelines (#memes, #dankmemes, #shitpost and the hashtag of your query), hot posts
   of meme subreddits (via meme-api.com) and the Imgflip template list. Results stream in as each source answers and are merged, de-duplicated and ranked
   by title match, upvotes and freshness. "About N results (x.xx seconds)", of course.
@@ -41,6 +42,7 @@ Memegle grew out of [Meme Search](https://github.com/meme-search/meme-search) by
 | Source | How | Needs key |
 |---|---|---|
 | Lemmy | `/api/v3/search` per community (federated via lemmy.world or the home instance) and global full-text search on lemmy.world, lemmy.ml, sh.itjust.works, lemmy.dbzer0.com, lemmy.blahaj.zone, sopuli.xyz, programming.dev, filtered to image posts in meme-like communities; `post/list` Hot for trending | no |
+| Bluesky | `app.bsky.feed.searchPosts` on api.bsky.app (`<query> meme`, `tag=memes`), image and Tenor GIF embeds | no |
 | Mastodon | `timelines/tag/<tag>?only_media=true` on mastodon.social | no |
 | Reddit | meme-api.com (`/gimme/<subreddit>/50`), filtered by relevance | no |
 | Imgflip | `api.imgflip.com/get_memes` (top 100 templates) | no |
