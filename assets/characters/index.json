@@ -1,0 +1,21 @@
+[
+  {
+    "file": "doge.png",
+    "name": "Doge"
+  },
+  {
+    "file": "pepe-thumbs.png",
+    "name": "Pepe thumbs up",
+    "query": "pepe"
+  },
+  {
+    "file": "pepe-peek.png",
+    "name": "Pepe peeking",
+    "query": "pepe"
+  },
+  {
+    "file": "pepe-sit.png",
+    "name": "Pepe sitting",
+    "query": "pepe"
+  }
+]

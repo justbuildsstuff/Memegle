@@ -34,8 +34,10 @@ Memegle grew out of [Meme Search](https://github.com/meme-search/meme-search) by
   autocomplete) and Imgur (gallery search). Keys are stored in the browser only.
 - Google-isms: "I'm Feeling Memey", Memegle Lens (pick an image, it gets described and searched),
   voice search, apps grid, light and dark theme, `/` focuses the search box, and a meme parade:
-  trending templates walk along and through the search bar on the home page (click one to search it;
-  off in Settings or with reduced-motion).
+  meme characters (PNG cut-outs from `assets/characters/`, listed in `index.json`) and trending templates
+  walk along and through the search bar on the home page (click one to search it; off in Settings or with
+  reduced-motion). Drop more transparent PNGs into that folder and add them to `index.json`. The wordmark
+  letters bounce in sequence.
 
 ## Sources
 

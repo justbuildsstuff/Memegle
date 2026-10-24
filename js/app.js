@@ -3,15 +3,15 @@
 import {
   loadLibrary, loadSettings, saveSettings, loadHistory, pushHistory, clearHistory, saveMemeFields, resetOverride,
   deleteMeme, addUpload, getEmbedding, putEmbedding, exportLibrary, importLibrary, clearLibrary, libraryStats, DEFAULT_SETTINGS, idb,
-} from './store.js?v=6';
-import { buildIndex, search, suggestions as librarySuggestions, highlight, rankByVector, embeddingText, hashText, tokenize } from './search.js?v=6';
-import { describe, embed, getCaptioner, CAPTION_MODELS, hasWebGPU, isModelCached } from './ai.js?v=6';
+} from './store.js?v=8';
+import { buildIndex, search, suggestions as librarySuggestions, highlight, rankByVector, embeddingText, hashText, tokenize } from './search.js?v=8';
+import { describe, embed, getCaptioner, CAPTION_MODELS, hasWebGPU, isModelCached } from './ai.js?v=8';
 import {
   SOURCE_INFO, DEFAULT_LEMMY_COMMUNITIES, DEFAULT_REDDIT_SUBS, searchLemmy, searchLemmyGlobal, trendingLemmy, trendingMastodon, searchMastodon, searchReddit, fetchRedditPool,
   searchBluesky, trendingBluesky,
   searchImgflip, fetchImgflip, searchTenor, tenorAutocomplete, searchGiphy, searchImgur, knowledgePanel,
   memeSuggestions, spellCorrection, createSession, favicon, relevance,
-} from './sources.js?v=6';
+} from './sources.js?v=8';
 
 // ------------------------------------------------------------------ icons
 const I = {
@@ -44,7 +44,7 @@ const I = {
 const sm = (svg, px = 16) => svg.replace('<svg', `<svg style="width:${px}px;height:${px}px;vertical-align:-3px;fill:currentColor"`);
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const logoHtml = (cls = '') => `<a class="logo ${cls}" href="#/" aria-label="Memegle home">${'Memegle'.split('').map((c) => `<span>${c}</span>`).join('')}</a>`;
+const logoHtml = (cls = '', { icon = true } = {}) => `<a class="logo ${cls}" href="#/" aria-label="Memegle home">${icon ? '<img class="logo-icon" src="icons/memegle-192.png" alt="">' : ''}${'Memegle'.split('').map((c, i) => `<span style="--i:${i}">${c}</span>`).join('')}</a>`;
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 const fmtNum = (n) => (n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1) + 'k' : String(n || 0));
@@ -272,7 +272,7 @@ function renderHome(app) {
   app.innerHTML = `
     <header class="home-top">${topRight()}${appsMenu()}</header>
     <main class="home">
-      <div class="logo-wrap">${logoHtml()}</div>
+      <div class="logo-wrap"><img class="home-icon" src="icons/memegle-512.png" alt="" width="132" height="132">${logoHtml('wave', { icon: false })}</div>
       <div id="sb"></div>
       <div class="buttons">
         <button class="gbtn" data-action="home-search">Memegle Search</button>
@@ -297,19 +297,29 @@ function renderHome(app) {
 }
 
 // Meme parade: trending templates walk along and through the search bar on the home page.
+let characterList = null;
+async function loadCharacters() {
+  if (characterList) return characterList;
+  try { const r = await fetch('assets/characters/index.json'); characterList = r.ok ? await r.json() : []; } catch { characterList = []; }
+  return characterList;
+}
 async function mountParade(stage) {
-  let tpl = [];
-  try { tpl = await fetchImgflip(); } catch { return; }
-  if (!tpl.length || !stage.isConnected) return;
-  const picks = tpl.slice(0, 40).sort(() => Math.random() - 0.5).slice(0, 12);
+  let tpl = []; let chars = [];
+  try { [tpl, chars] = await Promise.all([fetchImgflip().catch(() => []), loadCharacters()]); } catch { return; }
+  if (!stage.isConnected) return;
+  const walkers = [];
+  // PNG characters (assets/characters/*.png) walk on top of the bar and through it
+  chars.slice().sort(() => Math.random() - 0.5).forEach((c, i) => walkers.push({ kind: 'char', src: `assets/characters/${c.file}`, q: c.query || c.name, title: c.name, lane: i % 2 ? 'through' : 'top', size: 64 + Math.round(Math.random() * 30) }));
+  // trending templates as small rounded cards
+  tpl.slice(0, 40).sort(() => Math.random() - 0.5).slice(0, 8).forEach((t, i) => walkers.push({ kind: 'card', src: t.thumb, q: t.title, title: t.title, lane: i % 3 === 0 ? 'top' : 'through', size: 40 + Math.round(Math.random() * 18), ar: t.width && t.height ? Math.min(1.6, Math.max(0.7, t.width / t.height)) : 1 }));
+  if (!walkers.length) return;
   const parade = document.createElement('div');
   parade.className = 'parade';
   parade.setAttribute('aria-hidden', 'true');
-  parade.innerHTML = picks.map((t, i) => {
-    const lane = i % 3 === 0 ? 'top' : 'through';
-    const dur = 14 + Math.random() * 14; const delay = -(Math.random() * dur); const size = 38 + Math.round(Math.random() * 22);
+  parade.innerHTML = walkers.map((w, i) => {
+    const dur = (w.kind === 'char' ? 18 : 14) + Math.random() * 14; const delay = -(Math.random() * dur);
     const dir = i % 2 ? 'rtl' : 'ltr';
-    return `<div class="walker ${lane} ${dir}" style="--dur:${dur.toFixed(1)}s;--delay:${delay.toFixed(1)}s;--size:${size}px;--bob:${(0.42 + Math.random() * 0.3).toFixed(2)}s" data-action="parade-pick" data-q="${esc(t.title)}" title="${esc(t.title)}"><img src="${esc(t.thumb)}" alt="" loading="lazy" onerror="this.parentNode.remove()"></div>`;
+    return `<div class="walker ${w.kind} ${w.lane} ${dir}" style="--dur:${dur.toFixed(1)}s;--delay:${delay.toFixed(1)}s;--size:${w.size}px;--ar:${(w.ar || 1).toFixed(3)};--bob:${(0.38 + Math.random() * 0.3).toFixed(2)}s" data-action="parade-pick" data-q="${esc(w.q)}" title="${esc(w.title)}"><img src="${esc(w.src)}" alt="" decoding="async" onload="this.classList.add('ready')" onerror="this.parentNode.remove()"></div>`;
   }).join('');
   stage.prepend(parade);
 }
