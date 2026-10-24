@@ -3,15 +3,15 @@
 import {
   loadLibrary, loadSettings, saveSettings, loadHistory, pushHistory, clearHistory, saveMemeFields, resetOverride,
   deleteMeme, addUpload, getEmbedding, putEmbedding, exportLibrary, importLibrary, clearLibrary, libraryStats, DEFAULT_SETTINGS, idb,
-} from './store.js?v=8';
-import { buildIndex, search, suggestions as librarySuggestions, highlight, rankByVector, embeddingText, hashText, tokenize } from './search.js?v=8';
-import { describe, embed, getCaptioner, CAPTION_MODELS, hasWebGPU, isModelCached } from './ai.js?v=8';
+} from './store.js?v=9';
+import { buildIndex, search, suggestions as librarySuggestions, highlight, rankByVector, embeddingText, hashText, tokenize } from './search.js?v=9';
+import { describe, embed, getCaptioner, CAPTION_MODELS, hasWebGPU, isModelCached } from './ai.js?v=9';
 import {
   SOURCE_INFO, DEFAULT_LEMMY_COMMUNITIES, DEFAULT_REDDIT_SUBS, searchLemmy, searchLemmyGlobal, trendingLemmy, trendingMastodon, searchMastodon, searchReddit, fetchRedditPool,
   searchBluesky, trendingBluesky,
   searchImgflip, fetchImgflip, searchTenor, tenorAutocomplete, searchGiphy, searchImgur, knowledgePanel,
   memeSuggestions, spellCorrection, createSession, favicon, relevance,
-} from './sources.js?v=8';
+} from './sources.js?v=9';
 
 // ------------------------------------------------------------------ icons
 const I = {
@@ -311,7 +311,7 @@ async function mountParade(stage) {
   // PNG characters (assets/characters/*.png) walk on top of the bar and through it
   chars.slice().sort(() => Math.random() - 0.5).forEach((c, i) => walkers.push({ kind: 'char', src: `assets/characters/${c.file}`, q: c.query || c.name, title: c.name, lane: i % 2 ? 'through' : 'top', size: 64 + Math.round(Math.random() * 30) }));
   // trending templates as small rounded cards
-  tpl.slice(0, 40).sort(() => Math.random() - 0.5).slice(0, 8).forEach((t, i) => walkers.push({ kind: 'card', src: t.thumb, q: t.title, title: t.title, lane: i % 3 === 0 ? 'top' : 'through', size: 40 + Math.round(Math.random() * 18), ar: t.width && t.height ? Math.min(1.6, Math.max(0.7, t.width / t.height)) : 1 }));
+  tpl.slice(0, 40).sort(() => Math.random() - 0.5).slice(0, 8).forEach((t, i) => walkers.push({ kind: 'tpl', src: t.thumb, q: t.title, title: t.title, lane: i % 3 === 0 ? 'top' : 'through', size: 40 + Math.round(Math.random() * 18), ar: t.width && t.height ? Math.min(1.6, Math.max(0.7, t.width / t.height)) : 1 }));
   if (!walkers.length) return;
   const parade = document.createElement('div');
   parade.className = 'parade';

@@ -414,7 +414,7 @@ code { background: var(--chip); padding: 1px 5px; border-radius: 4px; font-size:
 .walker.rtl { animation-name: walk-rtl; }
 .walker img { width: calc(var(--size) * var(--ar, 1)); height: var(--size); display: block; opacity: 0; transition: opacity .4s; animation: bob var(--bob) ease-in-out infinite alternate; transform-origin: 50% 100%; }
 .walker img.ready { opacity: 1; }
-.walker.card img { object-fit: cover; border-radius: 10px; border: 2px solid var(--bg-elev); box-shadow: 0 2px 6px rgba(0,0,0,.25); background: var(--bg-soft); }
+.walker.tpl img { object-fit: cover; border-radius: 10px; border: 2px solid var(--bg-elev); box-shadow: 0 2px 6px rgba(0,0,0,.25); background: var(--bg-soft); }
 .walker.char { width: auto; }
 .walker.char img { width: auto; height: var(--size); object-fit: contain; filter: drop-shadow(0 3px 4px rgba(0,0,0,.25)); animation-name: waddle; }
 .walker.char.rtl img { transform: scaleX(-1); animation-name: waddle-rtl; }
