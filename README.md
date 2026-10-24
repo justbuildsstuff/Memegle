@@ -8,7 +8,6 @@
   <a href="https://justbuildsstuff.github.io/Memegle/"><img alt="Live" src="https://img.shields.io/badge/live-justbuildsstuff.github.io%2FMemegle-4285f4?style=flat-square"></a>
   <img alt="No backend" src="https://img.shields.io/badge/backend-none%2C%20static%20site-34a853?style=flat-square">
   <img alt="Sources" src="https://img.shields.io/badge/sources-Lemmy%20%C2%B7%20Bluesky%20%C2%B7%20Mastodon%20%C2%B7%20Reddit%20%C2%B7%20Imgflip-fbbc05?style=flat-square">
-  <a href="https://pump.fun/coin/6WAFc6of7UUPJEKomtp9bcLmKC4N47tt3vQ2icEBpump"><img alt="Token" src="https://img.shields.io/badge/token-Memegle%20on%20pump.fun-1fd15f?style=flat-square"></a>
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-Apache--2.0-ea4335?style=flat-square"></a>
 </p>
 
@@ -23,20 +22,6 @@
 Memegle is a meme-only search engine with the look and behaviour of Google Search. Type anything and
 get memes from across the web, nothing else. It is a static site: every search runs in your browser
 against public APIs, there is no server, no account and no tracking.
-
-## Token
-
-<a href="https://pump.fun/coin/6WAFc6of7UUPJEKomtp9bcLmKC4N47tt3vQ2icEBpump"><img src="https://metadata.j7tracker.io/images/XBy2OVHl9v" alt="Memegle coin" width="88" align="right"></a>
-
-**Memegle** is also a coin on Solana, launched on pump.fun. Its creator fees are routed on-chain to this GitHub
-account (`justbuildsstuff`, GitHub user id 16122591) through pump.fun's GitHub fee sharing, so they can only be
-claimed by signing in to pump.fun with this GitHub account.
-
-Contract address: `6WAFc6of7UUPJEKomtp9bcLmKC4N47tt3vQ2icEBpump`
-
-[pump.fun](https://pump.fun/coin/6WAFc6of7UUPJEKomtp9bcLmKC4N47tt3vQ2icEBpump) · [Dexscreener](https://dexscreener.com/solana/6WAFc6of7UUPJEKomtp9bcLmKC4N47tt3vQ2icEBpump) · [Solscan](https://solscan.io/token/6WAFc6of7UUPJEKomtp9bcLmKC4N47tt3vQ2icEBpump)
-
-Memegle itself has no wallet connection and never asks for one. The coin lives on the exchanges above, not in this app.
 
 ## Preview
 
