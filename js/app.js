@@ -3,15 +3,15 @@
 import {
   loadLibrary, loadSettings, saveSettings, loadHistory, pushHistory, clearHistory, saveMemeFields, resetOverride,
   deleteMeme, addUpload, getEmbedding, putEmbedding, exportLibrary, importLibrary, clearLibrary, libraryStats, DEFAULT_SETTINGS, idb,
-} from './store.js?v=9';
-import { buildIndex, search, suggestions as librarySuggestions, highlight, rankByVector, embeddingText, hashText, tokenize } from './search.js?v=9';
-import { describe, embed, getCaptioner, CAPTION_MODELS, hasWebGPU, isModelCached } from './ai.js?v=9';
+} from './store.js?v=11';
+import { buildIndex, search, suggestions as librarySuggestions, highlight, rankByVector, embeddingText, hashText, tokenize } from './search.js?v=11';
+import { describe, embed, getCaptioner, CAPTION_MODELS, hasWebGPU, isModelCached } from './ai.js?v=11';
 import {
   SOURCE_INFO, DEFAULT_LEMMY_COMMUNITIES, DEFAULT_REDDIT_SUBS, searchLemmy, searchLemmyGlobal, trendingLemmy, trendingMastodon, searchMastodon, searchReddit, fetchRedditPool,
   searchBluesky, trendingBluesky,
   searchImgflip, fetchImgflip, searchTenor, tenorAutocomplete, searchGiphy, searchImgur, knowledgePanel,
   memeSuggestions, spellCorrection, createSession, favicon, relevance,
-} from './sources.js?v=9';
+} from './sources.js?v=11';
 
 // ------------------------------------------------------------------ icons
 const I = {
@@ -44,7 +44,7 @@ const I = {
 const sm = (svg, px = 16) => svg.replace('<svg', `<svg style="width:${px}px;height:${px}px;vertical-align:-3px;fill:currentColor"`);
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const logoHtml = (cls = '', { icon = true } = {}) => `<a class="logo ${cls}" href="#/" aria-label="Memegle home">${icon ? '<img class="logo-icon" src="icons/memegle-192.png" alt="">' : ''}${'Memegle'.split('').map((c, i) => `<span style="--i:${i}">${c}</span>`).join('')}</a>`;
+const logoHtml = (cls = '', { icon = false } = {}) => `<a class="logo ${cls}" href="#/" aria-label="Memegle home">${icon ? '<img class="logo-icon" src="icons/memegle-192.png" alt="">' : ''}${'Memegle'.split('').map((c, i) => `<span style="--i:${i}">${c}</span>`).join('')}</a>`;
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 const fmtNum = (n) => (n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1) + 'k' : String(n || 0));
@@ -272,7 +272,7 @@ function renderHome(app) {
   app.innerHTML = `
     <header class="home-top">${topRight()}${appsMenu()}</header>
     <main class="home">
-      <div class="logo-wrap"><img class="home-icon" src="icons/memegle-512.png" alt="" width="132" height="132">${logoHtml('wave', { icon: false })}</div>
+      <div class="logo-wrap">${logoHtml('wave')}</div>
       <div id="sb"></div>
       <div class="buttons">
         <button class="gbtn" data-action="home-search">Memegle Search</button>

@@ -436,10 +436,8 @@ code { background: var(--chip); padding: 1px 5px; border-radius: 4px; font-size:
 
 /* ---------- wordmark wave + icons ---------- */
 .logo .logo-icon { height: 1.05em; width: auto; vertical-align: -0.18em; margin-right: 0.08em; }
-.home .home-icon { display: block; margin: max(24px, calc(50vh - 330px)) auto 0; width: 132px; height: 132px; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0,0,0,.18)); }
-.home .home-icon + .logo { margin-top: 6px; }
 .logo span { display: inline-block; }
 .logo.wave span, .logo:hover span { animation: letter-wave 2.8s ease-in-out infinite; animation-delay: calc(var(--i, 0) * 0.13s); }
 @keyframes letter-wave { 0%, 18%, 100% { transform: translateY(0); } 6% { transform: translateY(-9px) scaleY(1.06); } 12% { transform: translateY(2px) scaleY(0.98); } }
 @media (prefers-reduced-motion: reduce) { .logo span { animation: none !important; } }
-@media (max-width: 640px) { .home .home-icon { width: 96px; height: 96px; } .walker.char { --size: 48px !important; } }
+@media (max-width: 640px) { .walker.char { --size: 48px !important; } }

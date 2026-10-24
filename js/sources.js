@@ -2,7 +2,7 @@
 // Each adapter returns normalized items:
 // { id, source, kind: 'image'|'gif'|'template', title, body, image, thumb, width, height, url, site, path,
 //   author, score, comments, created, nsfw, tags }
-import { tokenize, stem } from './search.js?v=9';
+import { tokenize, stem } from './search.js?v=11';
 
 export const SOURCE_INFO = {
   lemmy: { label: 'Lemmy', site: 'lemmy.world', needsKey: false, desc: 'Meme communities across the Fediverse (memes, dankmemes, programmer humor, comics...)' },
