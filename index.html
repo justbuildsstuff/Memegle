@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Memegle</title>
+  <meta name="description" content="Memegle: Google for memes. Search your meme collection by what is in the picture and what it says. Everything runs in your browser.">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#202124" media="(prefers-color-scheme: dark)">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/memegle.css">
+  <script>
+    // Apply saved theme before first paint to avoid a flash.
+    try {
+      var s = JSON.parse(localStorage.getItem('memegle.settings') || '{}');
+      if (s.theme === 'light' || s.theme === 'dark') document.documentElement.setAttribute('data-theme', s.theme);
+    } catch (e) {}
+  </script>
+</head>
+<body>
+  <div id="app" aria-live="polite"></div>
+  <div id="toast" class="toast" role="status"></div>
+  <input id="file-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple class="hidden">
+  <input id="lens-input" type="file" accept="image/*" class="hidden">
+  <input id="import-input" type="file" accept="application/json" class="hidden">
+  <noscript><p style="padding:40px;text-align:center;font-family:arial">Memegle needs JavaScript.</p></noscript>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

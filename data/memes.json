@@ -1,0 +1,337 @@
+{
+  "version": 1,
+  "count": 20,
+  "memes": [
+    {
+      "id": "b_ed2de04286a3",
+      "path": "memes/animals/cat_keyboard.jpg",
+      "filename": "cat_keyboard.jpg",
+      "folder": "animals",
+      "width": 640,
+      "height": 480,
+      "description": "Synthetic demo meme with a lavender-to-pink gradient. Top text: Cat walked on keyboard. Bottom text: Shipped to production. Joke about accidental commits caused by a cat.",
+      "text": "CAT WALKED ON KEYBOARD SHIPPED TO PRODUCTION",
+      "tags": [
+        "cat",
+        "programming",
+        "deploy",
+        "animals"
+      ],
+      "source": "bundled"
+    },
+    {
+      "id": "b_1446bf8ac651",
+      "path": "memes/animals/dog_backups.jpg",
+      "filename": "dog_backups.jpg",
+      "folder": "animals",
+      "width": 600,
+      "height": 600,
+      "description": "Synthetic demo meme with a yellow-to-orange gradient. Top text: The dog ate my homework. Bottom text: The dog also ate my backups. Excuse meme about lost data.",
+      "text": "THE DOG ATE MY HOMEWORK THE DOG ALSO ATE MY BACKUPS",
+      "tags": [
+        "dog",
+        "excuse",
+        "backup",
+        "animals"
+      ],
+      "source": "bundled"
+    },
+    {
+      "id": "b_1f0abf820001",
+      "path": "memes/animals/rubber_duck.jpg",
+      "filename": "rubber_duck.jpg",
+      "folder": "animals",
+      "width": 500,
+      "height": 625,
+      "description": "Synthetic demo meme with a pale yellow-to-mint gradient. Top text: Rubber duck debugging. Bottom text: The duck found the bug first. Programming joke about explaining code to a rubber duck.",
+      "text": "RUBBER DUCK DEBUGGING THE DUCK FOUND THE BUG FIRST",
+      "tags": [
+        "duck",
+        "debugging",
+        "programming",
+        "animals"
+      ],
+      "source": "bundled"
+    },
+    {
+      "id": "b_3d4844c643f3",
+      "path": "memes/classics/bugs_bunny_no.jpg",
+      "filename": "bugs_bunny_no.jpg",
+      "folder": "classics",
+      "width": 628,
+      "height": 628,
+      "description": "Close-up of Bugs Bunny with a smug, half-lidded expression on a pink background. Bottom-left text: NO.",
+      "text": "NO",
+      "tags": [
+        "bugs bunny",
+        "cartoon",
+        "reaction",
+        "no"
+      ],
+      "source": "bundled"
+    },
+    {
+      "id": "b_fc66b3c55431",
+      "path": "memes/classics/look_at_all_the_fucks.jpg",
+      "filename": "look_at_all_the_fucks.jpg",
+      "folder": "classics",
+      "width": 700,
+      "height": 525,
+      "description": "A woman in a blue dress spins with her arms outstretched in an alpine meadow full of yellow flowers, snow-covered mountains behind her. Still from The Sound of Music. Top text: Look at all. Bottom text: the fucks I do not give.",
+      "text": "Look at all the fucks I do not give",
+      "tags": [
+        "sound of music",
+        "movie",
+        "dgaf",
+        "reaction"
+      ],
+      "source": "bundled"
+    },
+    {
+      "id": "b_13f531a665c0",
+      "path": "memes/classics/miyazaki_tired.jpg",
+      "filename": "miyazaki_tired.jpg",
+      "folder": "classics",
+      "width": 700,
+      "height": 390,
+      "description": "An older man in a shirt and apron pushes his glasses up onto his forehead with both hands, eyes closed, a cigarette in his mouth, sitting at a cluttered desk. Still from the NHK documentary 10 Years with Hayao Miyazaki. Used to express exhaustion.",
+      "text": "NHK WORLD JAPAN 10 Years with Hayao Miyazaki",
+      "tags": [
+        "miyazaki",
+        "tired",
+        "work",
+        "programming",
+        "exhausted"
+      ],
+      "source": "bundled"
+    },
+    {
+      "id": "b_36a90546e81c",
+      "path": "memes/classics/weird_knowledge_increased.jpg",
+      "filename": "weird_knowledge_increased.jpg",
+      "folder": "classics",
+      "width": 460,
+      "height": 332,
+      "description": "A wide-eyed white cat sits in front of a glowing green and blue cosmic vortex with sparkles. Caption: WEIRD KNOWLEDGE INCREASED.",
+      "text": "WEIRD KNOWLEDGE INCREASED",
+      "tags": [
+        "cat",
+        "cosmic",
+        "reaction",
+        "knowledge",
+        "animals"
+      ],
+      "source": "bundled"
+    },
+    {
+      "id": "b_06b70ed1bdf6",
+      "path": "memes/crypto/bought_the_dip.jpg",
+      "filename": "bought_the_dip.jpg",
+      "folder": "crypto",
+      "width": 640,
+      "height": 480,
+      "description": "Synthetic demo meme with a red-to-purple gradient. Top text: Bought the dip. Bottom text: It kept dipping. Trading humour about catching a falling knife.",
+      "text": "BOUGHT THE DIP IT KEPT DIPPING",
+      "tags": [
+        "crypto",
+        "trading",
+        "loss"
+      ],
+      "source": "bundled"
+    },
+    {
+      "id": "b_6ca3a581a115",
+      "path": "memes/crypto/gas_fees.jpg",
+      "filename": "gas_fees.jpg",
+      "folder": "crypto",
+      "width": 720,
+      "height": 405,
+      "description": "Synthetic demo meme with a dark blue gradient. Top text: Sending $5. Bottom text: Gas fee $47. Complaint about expensive blockchain transaction fees.",
+      "text": "SENDING $5 GAS FEE $47",
+      "tags": [
+        "crypto",
+        "ethereum",
+        "fees"
+      ],
+      "source": "bundled"
+    },
+    {
+      "id": "b_6462c8d847a6",
+      "path": "memes/crypto/wen_moon.jpg",
+      "filename": "wen_moon.jpg",
+      "folder": "crypto",
+      "width": 600,
+      "height": 600,
+      "description": "Synthetic demo meme with a midnight blue gradient and a pale circle like a moon. Top text: Wen moon. Bottom text: Soon (TM). Crypto community in-joke about price pumps that never come.",
+      "text": "WEN MOON SOON (TM)",
+      "tags": [
+        "crypto",
+        "moon",
+        "hopium"
+      ],
+      "source": "bundled"
+    },
+    {
+      "id": "b_3bb0e7c92998",
+      "path": "memes/internet/ai_wrote_it.jpg",
+      "filename": "ai_wrote_it.jpg",
+      "folder": "internet",
+      "width": 600,
+      "height": 600,
+      "description": "Synthetic demo meme with a silver-to-grey gradient. Top text: The AI wrote the code. Bottom text: The AI also wrote the bugs. Joke about AI-generated code quality.",
+      "text": "THE AI WROTE THE CODE THE AI ALSO WROTE THE BUGS",
+      "tags": [
+        "ai",
+        "programming",
+        "bug"
+      ],
+      "source": "bundled"
+    },
+    {
+      "id": "b_95b58943b501",
+      "path": "memes/internet/read_the_docs.jpg",
+      "filename": "read_the_docs.jpg",
+      "folder": "internet",
+      "width": 500,
+      "height": 625,
+      "description": "Synthetic demo meme with a cyan-to-violet gradient. Top text: Read the documentation? Bottom text: I prefer to suffer. Developers refusing to read the manual.",
+      "text": "READ THE DOCUMENTATION? I PREFER TO SUFFER",
+      "tags": [
+        "documentation",
+        "programming",
+        "suffering"
+      ],
+      "source": "bundled"
+    },
+    {
+      "id": "b_c88da33d694a",
+      "path": "memes/internet/this_is_fine.jpg",
+      "filename": "this_is_fine.jpg",
+      "folder": "internet",
+      "width": 640,
+      "height": 480,
+      "description": "Synthetic demo meme with a red gradient and orange flame shapes along the bottom. Top text: Everything is on fire. Bottom text: This is fine. Staying calm while everything collapses.",
+      "text": "EVERYTHING IS ON FIRE THIS IS FINE",
+      "tags": [
+        "fire",
+        "calm",
+        "reaction",
+        "chaos"
+      ],
+      "source": "bundled"
+    },
+    {
+      "id": "b_557d2cc5dc87",
+      "path": "memes/internet/wifi_down.jpg",
+      "filename": "wifi_down.jpg",
+      "folder": "internet",
+      "width": 720,
+      "height": 405,
+      "description": "Synthetic demo meme with a light blue gradient. Top text: Wifi down for 30 seconds. Bottom text: Time to reflect on life. Exaggerated panic over a short internet outage.",
+      "text": "WIFI DOWN FOR 30 SECONDS TIME TO REFLECT ON LIFE",
+      "tags": [
+        "wifi",
+        "internet",
+        "panic"
+      ],
+      "source": "bundled"
+    },
+    {
+      "id": "b_5b29fbe66311",
+      "path": "memes/work/coffee_first.jpg",
+      "filename": "coffee_first.jpg",
+      "folder": "work",
+      "width": 640,
+      "height": 480,
+      "description": "Synthetic demo meme with a brown-to-peach gradient. Top text: First coffee. Bottom text: Then human. Morning routine joke about needing caffeine before being functional.",
+      "text": "FIRST COFFEE THEN HUMAN",
+      "tags": [
+        "coffee",
+        "morning",
+        "tired"
+      ],
+      "source": "bundled"
+    },
+    {
+      "id": "b_d254e77a5932",
+      "path": "memes/work/deploy_friday.jpg",
+      "filename": "deploy_friday.jpg",
+      "folder": "work",
+      "width": 640,
+      "height": 480,
+      "description": "Synthetic demo meme with a red-to-purple gradient. Top text: Deploying to prod. Bottom text: On a Friday at 4:59 PM. Joke about pushing a release right before the weekend.",
+      "text": "DEPLOYING TO PROD ON A FRIDAY AT 4:59 PM",
+      "tags": [
+        "devops",
+        "friday",
+        "programming",
+        "deploy"
+      ],
+      "source": "bundled"
+    },
+    {
+      "id": "b_52b66cb76852",
+      "path": "memes/work/meeting_email.jpg",
+      "filename": "meeting_email.jpg",
+      "folder": "work",
+      "width": 720,
+      "height": 405,
+      "description": "Synthetic demo meme with a yellow-to-orange gradient. Top text: This meeting. Bottom text: Could have been an email. Office humour about pointless meetings.",
+      "text": "THIS MEETING COULD HAVE BEEN AN EMAIL",
+      "tags": [
+        "office",
+        "meeting",
+        "work"
+      ],
+      "source": "bundled"
+    },
+    {
+      "id": "b_994141419749",
+      "path": "memes/work/monday.jpg",
+      "filename": "monday.jpg",
+      "folder": "work",
+      "width": 500,
+      "height": 625,
+      "description": "Synthetic demo meme with a grey gradient. Top text: Me on Monday. Bottom text: Already waiting for Friday. Start-of-the-week tiredness.",
+      "text": "ME ON MONDAY ALREADY WAITING FOR FRIDAY",
+      "tags": [
+        "monday",
+        "office",
+        "tired"
+      ],
+      "source": "bundled"
+    },
+    {
+      "id": "b_443823b3fa64",
+      "path": "memes/work/semicolon.jpg",
+      "filename": "semicolon.jpg",
+      "folder": "work",
+      "width": 720,
+      "height": 405,
+      "description": "Synthetic demo meme with a navy-to-pink gradient. Top text: Three hours of debugging. Bottom text: It was a missing semicolon. Programmer pain about tiny syntax errors.",
+      "text": "THREE HOURS OF DEBUGGING IT WAS A MISSING SEMICOLON",
+      "tags": [
+        "programming",
+        "bug",
+        "debugging"
+      ],
+      "source": "bundled"
+    },
+    {
+      "id": "b_e143234d536d",
+      "path": "memes/work/works_on_my_machine.jpg",
+      "filename": "works_on_my_machine.jpg",
+      "folder": "work",
+      "width": 600,
+      "height": 600,
+      "description": "Synthetic demo meme with a teal-to-blue gradient. Top text: It works. Bottom text: On my machine. The classic developer excuse when a bug only appears in production.",
+      "text": "IT WORKS ON MY MACHINE",
+      "tags": [
+        "programming",
+        "bug",
+        "excuse"
+      ],
+      "source": "bundled"
+    }
+  ]
+}
