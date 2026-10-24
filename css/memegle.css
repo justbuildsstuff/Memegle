@@ -402,3 +402,25 @@ code { background: var(--chip); padding: 1px 5px; border-radius: 4px; font-size:
 .skeleton .bar.short { width: 55%; }
 .skeleton .fav.bar { width: 26px; height: 26px; border-radius: 50%; margin: 0; }
 .result-stats b { color: var(--text); font-weight: 400; }
+
+/* ---------- meme parade (home) ---------- */
+.sb-stage { position: relative; width: 100%; max-width: 584px; }
+.sb-stage .searchbox { position: relative; z-index: 2; }
+.sb-stage .searchbox-inner { position: relative; }
+.parade { position: absolute; left: -40vw; right: -40vw; top: 0; height: 46px; pointer-events: none; z-index: 1; overflow: visible; }
+.walker { position: absolute; top: 50%; left: 0; width: var(--size); height: var(--size); margin-top: calc(var(--size) / -2); pointer-events: auto; cursor: pointer;
+  animation: walk var(--dur) linear infinite; animation-delay: var(--delay); will-change: transform; }
+.walker.top { margin-top: calc(-23px - var(--size)); }
+.walker.rtl { animation-name: walk-rtl; }
+.walker img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; border: 2px solid var(--bg-elev); box-shadow: 0 2px 6px rgba(0,0,0,.25); background: var(--bg-soft);
+  animation: bob var(--bob) ease-in-out infinite alternate; display: block; }
+.walker.top img { animation-name: bob-stand; }
+.walker:hover img { animation-play-state: paused; transform: scale(1.25); box-shadow: 0 4px 14px rgba(0,0,0,.35); }
+.walker.through { z-index: 0; }
+.walker.top { z-index: 3; }
+@keyframes walk { from { transform: translateX(0); } to { transform: translateX(calc(80vw + 584px)); } }
+@keyframes walk-rtl { from { transform: translateX(calc(80vw + 584px)); } to { transform: translateX(0); } }
+@keyframes bob { from { transform: translateY(2px) rotate(-7deg); } to { transform: translateY(-3px) rotate(7deg); } }
+@keyframes bob-stand { from { transform: translateY(0) rotate(-4deg) scaleY(1); } to { transform: translateY(-5px) rotate(4deg) scaleY(1.04); } }
+@media (prefers-reduced-motion: reduce) { .parade { display: none; } }
+@media (max-width: 640px) { .walker { --size: 34px !important; } }

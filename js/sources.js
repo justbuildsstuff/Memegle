@@ -2,7 +2,7 @@
 // Each adapter returns normalized items:
 // { id, source, kind: 'image'|'gif'|'template', title, body, image, thumb, width, height, url, site, path,
 //   author, score, comments, created, nsfw, tags }
-import { tokenize, stem } from './search.js';
+import { tokenize, stem } from './search.js?v=5';
 
 export const SOURCE_INFO = {
   lemmy: { label: 'Lemmy', site: 'lemmy.world', needsKey: false, desc: 'Meme communities across the Fediverse (memes, dankmemes, programmer humor, comics...)' },
@@ -11,8 +11,14 @@ export const SOURCE_INFO = {
   tenor: { label: 'Tenor GIFs', site: 'tenor.com', needsKey: true, keyName: 'tenorKey', keyUrl: 'https://developers.google.com/tenor/guides/quickstart', desc: "Google's GIF search. Free API key from Google Cloud." },
   giphy: { label: 'Giphy', site: 'giphy.com', needsKey: true, keyName: 'giphyKey', keyUrl: 'https://developers.giphy.com/dashboard/', desc: 'GIF and sticker search. Free API key.' },
   imgur: { label: 'Imgur', site: 'imgur.com', needsKey: true, keyName: 'imgurClientId', keyUrl: 'https://api.imgur.com/oauth2/addclient', desc: 'Imgur gallery search. Free Client-ID.' },
+  mastodon: { label: 'Mastodon', site: 'mastodon.social', needsKey: false, desc: 'Media posts under #memes, #dankmemes, #shitpost and the hashtag of your search on mastodon.social' },
   library: { label: 'My memes', site: 'memegle', needsKey: false, desc: 'Memes you uploaded or saved in this browser' },
+  lemmy_global: { label: 'Lemmy (all meme communities)', site: 'lemmy.world', hidden: true, parent: 'lemmy' },
 };
+// Instances whose full-text search is queried for image posts in any meme-like community.
+export const LEMMY_GLOBAL_HOSTS = ['lemmy.world', 'lemmy.ml', 'sh.itjust.works', 'lemmy.dbzer0.com', 'lemmy.blahaj.zone', 'sopuli.xyz', 'programming.dev'];
+const MEME_COMMUNITY_RE = /meme|humor|humour|shitpost|comic|funny|dank|_irl|irl$|joke|cursed|lmao|lol|wholesome|greentext|satire|parody|absurd|onehundredninetysix|^196|clevercomebacks|antiquememes|fakehistory|dumb|silly|chaotic|unix_surrealism|programmerhumor|tenforward|risa/i;
+export const DEFAULT_MASTODON_TAGS = ['memes', 'meme', 'dankmemes', 'shitpost', 'funny'];
 
 // name@instance, searched through lemmy.world (federated) unless the community's own instance is listed as host.
 export const DEFAULT_LEMMY_COMMUNITIES = [
@@ -20,8 +26,10 @@ export const DEFAULT_LEMMY_COMMUNITIES = [
   'me_irl@lemmy.world', 'linuxmemes@lemmy.world', 'programmer_humor@programming.dev', 'programmerhumor@lemmy.ml',
   'science_memes@mander.xyz', 'microblogmemes@lemmy.world', 'antiquememesroadshow@lemmy.world', 'comicstrips@lemmy.world',
   'starwarsmemes@lemmy.world', 'rpgmemes@ttrpg.network', 'lotrmemes@midwest.social', '196@lemmy.blahaj.zone',
+  'memes@sh.itjust.works', 'memes@lemmy.dbzer0.com', 'wholesomememes@lemmy.world', 'historymemes@lemmy.world', 'fakehistoryporn@lemmy.world',
+  'tenforward@lemmy.world', 'risa@startrek.website', 'clevercomebacks@lemmy.world', 'animemes@ani.social', 'dach@feddit.org',
 ];
-const LEMMY_SELF_HOSTS = new Set(['lemmy.ml', 'sopuli.xyz', 'programming.dev']);
+const LEMMY_SELF_HOSTS = new Set(['lemmy.ml', 'sopuli.xyz', 'programming.dev', 'sh.itjust.works', 'lemmy.dbzer0.com', 'lemmy.blahaj.zone']);
 export const DEFAULT_REDDIT_SUBS = ['memes', 'dankmemes', 'me_irl', 'wholesomememes', 'ProgrammerHumor', 'AdviceAnimals', 'HistoryMemes', 'PrequelMemes'];
 
 const IMG_RE = /\.(jpe?g|png|gif|webp|avif)(\?|#|$)/i;
@@ -68,7 +76,7 @@ export function cleanQuery(q) {
 export function relevance(item, qTokens, phrase) {
   if (!qTokens.length) return 0;
   const title = (item.title || '').toLowerCase();
-  const body = (item.body || '').toLowerCase();
+  const body = (item.text || item.body || '').toLowerCase();
   const tags = (item.tags || []).join(' ').toLowerCase();
   const tTok = new Set(tokenize(title));
   const bTok = new Set(tokenize(body + ' ' + tags));
@@ -98,7 +106,8 @@ export function rank(items, q, { sort = 'relevance' } = {}) {
     it.rankScore = rel * 2 + pop + fresh + src;
   }
   // drop posts that only matched a generic word like "meme" (keyed GIF APIs rank server-side, keep them)
-  if (qTokens.length) items = items.filter((it) => it.rel > 0 || it.source === 'tenor' || it.source === 'giphy');
+  const generic = !qTokens.some((t) => !GENERIC.test(t));
+  if (qTokens.length && !generic) items = items.filter((it) => it.rel > 0 || it.source === 'tenor' || it.source === 'giphy' || it.source === 'mastodon');
   if (sort === 'newest') items.sort((a, b) => (b.created || 0) - (a.created || 0));
   else if (sort === 'top') items.sort((a, b) => (b.score || 0) - (a.score || 0));
   else items.sort((a, b) => b.rankScore - a.rankScore);
@@ -119,19 +128,23 @@ export function dedupe(items) {
 }
 
 // ---------------------------------------------------------------- Lemmy
-function lemmyItem(p, instanceLabel) {
+function lemmyItem(p, instanceLabel, { strict = false } = {}) {
   const post = p.post; const c = p.community; const counts = p.counts || {};
   const url = post.url || '';
   const isImg = /^image\//.test(post.url_content_type || '') || IMG_RE.test(url) || /\/pictrs\/image\//.test(url);
-  const image = isImg ? url : post.thumbnail_url;
+  if (!isImg) return null;
+  if (strict && !MEME_COMMUNITY_RE.test(`${c.name} ${c.title || ''}`) && !/\bmemes?\b/i.test(post.name)) return null;
+  const image = url;
   if (!image) return null;
+  const fullText = stripMarkdown(post.body);
   const host = hostOf(post.ap_id) || instanceLabel;
   return {
     id: `lemmy:${post.ap_id}`,
     source: 'lemmy',
     kind: /\.gif(\?|$)/i.test(image) ? 'gif' : 'image',
     title: post.name,
-    body: stripMarkdown(post.body).slice(0, 240) || (post.alt_text || ''),
+    body: fullText.slice(0, 240) || (post.alt_text || ''),
+    text: `${fullText} ${post.alt_text || ''} ${c.title || ''}`.trim(),
     image,
     thumb: post.thumbnail_url || image,
     url: post.ap_id,
@@ -153,7 +166,7 @@ function lemmyTarget(community) {
   return { host: 'lemmy.world', name: instance === 'lemmy.world' ? name : community };
 }
 
-export async function searchLemmy(q, { communities = DEFAULT_LEMMY_COMMUNITIES, sort = 'relevance', page = 1, limit = 20, onPartial } = {}) {
+export async function searchLemmy(q, { communities = DEFAULT_LEMMY_COMMUNITIES, sort = 'relevance', page = 1, limit = 40, onPartial } = {}) {
   const lsort = sort === 'newest' ? 'New' : 'TopAll';
   const results = await Promise.allSettled(communities.map(async (community) => {
     const { host, name } = lemmyTarget(community);
@@ -168,7 +181,23 @@ export async function searchLemmy(q, { communities = DEFAULT_LEMMY_COMMUNITIES, 
   return { items, failed, total: communities.length };
 }
 
-export async function trendingLemmy({ communities = DEFAULT_LEMMY_COMMUNITIES.slice(0, 8), limit = 15 } = {}) {
+// Full-text search on several instances, kept to image posts in meme-like communities.
+export async function searchLemmyGlobal(q, { hosts = LEMMY_GLOBAL_HOSTS, sort = 'relevance', page = 1, limit = 50, onPartial } = {}) {
+  const lsort = sort === 'newest' ? 'New' : 'TopAll';
+  const apiPages = [page * 2 - 1, page * 2];
+  const jobs = hosts.flatMap((host) => apiPages.map((ap) => [host, ap]));
+  const results = await Promise.allSettled(jobs.map(async ([host, ap]) => {
+    const u = `https://${host}/api/v3/search?q=${encodeURIComponent(cleanQuery(q))}&type_=Posts&sort=${lsort}&limit=${limit}&page=${ap}`;
+    const data = await cached(u, 5 * 60000, () => getJSON(u, { timeout: 15000 }));
+    const items = (data.posts || []).map((p) => lemmyItem(p, host, { strict: true })).filter(Boolean);
+    onPartial?.(items);
+    return items;
+  }));
+  const items = results.flatMap((r) => (r.status === 'fulfilled' ? r.value : []));
+  return { items, failed: results.filter((r) => r.status === 'rejected').length, total: jobs.length };
+}
+
+export async function trendingLemmy({ communities = DEFAULT_LEMMY_COMMUNITIES.slice(0, 12), limit = 25 } = {}) {
   const results = await Promise.allSettled(communities.map(async (community) => {
     const { host, name } = lemmyTarget(community);
     const u = `https://${host}/api/v3/post/list?community_name=${encodeURIComponent(name)}&sort=Hot&limit=${limit}`;
@@ -176,6 +205,55 @@ export async function trendingLemmy({ communities = DEFAULT_LEMMY_COMMUNITIES.sl
     return (data.posts || []).filter((p) => !p.post.featured_community).map((p) => lemmyItem(p, host)).filter(Boolean);
   }));
   return results.flatMap((r) => (r.status === 'fulfilled' ? r.value : []));
+}
+
+// ---------------------------------------------------------------- Mastodon hashtag timelines (public, CORS enabled)
+const MASTO_MEME_TAG_RE = /meme|shitpost|humor|humour|funny|dank|lol|joke/i;
+function htmlToText(html) {
+  if (!html) return '';
+  const doc = new DOMParser().parseFromString(String(html).replace(/<br\s*\/?>|<\/p>/gi, ' '), 'text/html');
+  return (doc.body.textContent || '').replace(/\s+/g, ' ').trim();
+}
+function mastodonItems(statuses, { requireMemeTag = false } = {}) {
+  const out = [];
+  for (const s of statuses) {
+    const st = s.reblog || s;
+    const text = htmlToText(st.content);
+    const tags = (st.tags || []).map((t) => t.name.toLowerCase());
+    if (requireMemeTag && !tags.some((t) => MASTO_MEME_TAG_RE.test(t)) && !/\bmemes?\b/i.test(text)) continue;
+    for (const m of st.media_attachments || []) {
+      if (m.type !== 'image' && m.type !== 'gifv') continue;
+      const image = m.type === 'gifv' ? (m.preview_url || m.url) : m.url;
+      if (!image) continue;
+      const title = (text.replace(/#\w+/g, '').trim() || m.description || `#${tags[0] || 'meme'}`).slice(0, 140);
+      out.push({
+        id: `masto:${st.url || st.uri}#${m.id}`, source: 'mastodon', kind: m.type === 'gifv' ? 'gif' : 'image',
+        title, body: m.description || '', text: `${text} ${tags.join(' ')} ${m.description || ''}`, image, thumb: m.preview_url || image,
+        width: m.meta?.original?.width, height: m.meta?.original?.height,
+        url: st.url || st.uri, site: hostOf(st.url || st.uri) || 'mastodon.social', path: tags.length ? `#${tags[0]}` : 'post',
+        author: st.account?.acct, score: (st.favourites_count || 0) + (st.reblogs_count || 0), comments: st.replies_count || 0,
+        created: Date.parse(st.created_at) || 0, nsfw: Boolean(st.sensitive), tags,
+      });
+    }
+  }
+  return out;
+}
+export async function trendingMastodon({ tags = DEFAULT_MASTODON_TAGS, host = 'mastodon.social', limit = 40 } = {}) {
+  const results = await Promise.allSettled(tags.map((tag) => {
+    const u = `https://${host}/api/v1/timelines/tag/${encodeURIComponent(tag)}?only_media=true&limit=${limit}`;
+    return cached(u, 5 * 60000, () => getJSON(u)).then((d) => mastodonItems(d));
+  }));
+  return results.flatMap((r) => (r.status === 'fulfilled' ? r.value : []));
+}
+export async function searchMastodon(q, { host = 'mastodon.social', limit = 40 } = {}) {
+  const tag = cleanQuery(q).toLowerCase().replace(/[^a-z0-9]+/g, '');
+  if (!tag || tag.length < 3) return { items: [] };
+  const tags = [tag, `${tag}meme`, `${tag}memes`];
+  const results = await Promise.allSettled(tags.map((t, i) => {
+    const u = `https://${host}/api/v1/timelines/tag/${encodeURIComponent(t)}?only_media=true&limit=${limit}`;
+    return cached(u, 5 * 60000, () => getJSON(u)).then((d) => mastodonItems(d, { requireMemeTag: i === 0 }));
+  }));
+  return { items: results.flatMap((r) => (r.status === 'fulfilled' ? r.value : [])), failed: results.filter((r) => r.status === 'rejected').length, total: tags.length };
 }
 
 // ---------------------------------------------------------------- Reddit (via meme-api.com)
@@ -403,8 +481,7 @@ export function createSession(q, opts, adapters) {
       session.byId.set(it.id, it);
       session.items.push(it);
     }
-    session.items = dedupe(session.items);
-    rank(session.items, q, { sort: opts.sort });
+    session.items = rank(dedupe(session.items), q, { sort: opts.sort });
   };
   const runAll = (list) => {
     session.done = false;

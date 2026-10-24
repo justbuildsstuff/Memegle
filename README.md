@@ -12,9 +12,10 @@ Memegle grew out of [Meme Search](https://github.com/meme-search/meme-search) by
 
 ## What it does
 
-- **Live search** across meme communities on Lemmy (searched in parallel through lemmy.world and
-  the communities' home instances), hot posts of meme subreddits (via meme-api.com) and the Imgflip
-  template list. Results stream in as each source answers and are merged, de-duplicated and ranked
+- **Live search** across the Fediverse's meme communities on Lemmy (27 communities searched directly,
+  plus a full-text search on seven instances restricted to image posts in meme-like communities),
+  Mastodon hashtag timelines (#memes, #dankmemes, #shitpost and the hashtag of your query), hot posts
+  of meme subreddits (via meme-api.com) and the Imgflip template list. Results stream in as each source answers and are merged, de-duplicated and ranked
   by title match, upvotes and freshness. "About N results (x.xx seconds)", of course.
 - **Suggestions as you type**, live from Google's suggest service (meme-specific), plus Imgflip
   template names, your recent searches and matches from My memes. "Did you mean" for typos.
@@ -31,13 +32,16 @@ Memegle grew out of [Meme Search](https://github.com/meme-search/meme-search) by
 - **Optional keyed sources**: add free API keys in Settings for Tenor and Giphy (GIF search and
   autocomplete) and Imgur (gallery search). Keys are stored in the browser only.
 - Google-isms: "I'm Feeling Memey", Memegle Lens (pick an image, it gets described and searched),
-  voice search, apps grid, light and dark theme, `/` focuses the search box.
+  voice search, apps grid, light and dark theme, `/` focuses the search box, and a meme parade:
+  trending templates walk along and through the search bar on the home page (click one to search it;
+  off in Settings or with reduced-motion).
 
 ## Sources
 
 | Source | How | Needs key |
 |---|---|---|
-| Lemmy | `/api/v3/search` on lemmy.world (federated) and the communities' own instances; `post/list` Hot for trending | no |
+| Lemmy | `/api/v3/search` per community (federated via lemmy.world or the home instance) and global full-text search on lemmy.world, lemmy.ml, sh.itjust.works, lemmy.dbzer0.com, lemmy.blahaj.zone, sopuli.xyz, programming.dev, filtered to image posts in meme-like communities; `post/list` Hot for trending | no |
+| Mastodon | `timelines/tag/<tag>?only_media=true` on mastodon.social | no |
 | Reddit | meme-api.com (`/gimme/<subreddit>/50`), filtered by relevance | no |
 | Imgflip | `api.imgflip.com/get_memes` (top 100 templates) | no |
 | Wikipedia | Action API, knowledge panel when an article about the meme exists | no |
@@ -76,7 +80,7 @@ js/search.js        BM25, suggestions, did-you-mean, vector ranking for My memes
 js/store.js         bundled index + IndexedDB uploads/edits/embeddings, settings, history
 js/ai.js            Transformers.js (Florence-2, MiniLM) and OpenAI-compatible provider
 data/memes.json     search index for memes/ (generated)
-tools/              build_index.py, serve.py
+tools/              build_index.py, serve.py, bump_version.py (cache-busting ?v= after a deploy)
 ```
 
 ## License

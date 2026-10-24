@@ -3,14 +3,14 @@
 import {
   loadLibrary, loadSettings, saveSettings, loadHistory, pushHistory, clearHistory, saveMemeFields, resetOverride,
   deleteMeme, addUpload, getEmbedding, putEmbedding, exportLibrary, importLibrary, clearLibrary, libraryStats, DEFAULT_SETTINGS, idb,
-} from './store.js';
-import { buildIndex, search, suggestions as librarySuggestions, highlight, rankByVector, embeddingText, hashText, tokenize } from './search.js';
-import { describe, embed, getCaptioner, CAPTION_MODELS, hasWebGPU, isModelCached } from './ai.js';
+} from './store.js?v=5';
+import { buildIndex, search, suggestions as librarySuggestions, highlight, rankByVector, embeddingText, hashText, tokenize } from './search.js?v=5';
+import { describe, embed, getCaptioner, CAPTION_MODELS, hasWebGPU, isModelCached } from './ai.js?v=5';
 import {
-  SOURCE_INFO, DEFAULT_LEMMY_COMMUNITIES, DEFAULT_REDDIT_SUBS, searchLemmy, trendingLemmy, searchReddit, fetchRedditPool,
+  SOURCE_INFO, DEFAULT_LEMMY_COMMUNITIES, DEFAULT_REDDIT_SUBS, searchLemmy, searchLemmyGlobal, trendingLemmy, trendingMastodon, searchMastodon, searchReddit, fetchRedditPool,
   searchImgflip, fetchImgflip, searchTenor, tenorAutocomplete, searchGiphy, searchImgur, knowledgePanel,
   memeSuggestions, spellCorrection, createSession, favicon, relevance,
-} from './sources.js';
+} from './sources.js?v=5';
 
 // ------------------------------------------------------------------ icons
 const I = {
@@ -60,7 +60,8 @@ function ago(ts) {
 // ------------------------------------------------------------------ state
 const EXTRA_DEFAULTS = {
   safeSearch: true,
-  sources: { lemmy: true, reddit: true, imgflip: true, tenor: true, giphy: true, imgur: true, library: true, wiki: true },
+  sources: { lemmy: true, reddit: true, imgflip: true, mastodon: true, tenor: true, giphy: true, imgur: true, library: true, wiki: true },
+  parade: true,
   tenorKey: '', giphyKey: '', imgurClientId: '',
   googleSuggest: true,
   lemmyCommunities: DEFAULT_LEMMY_COMMUNITIES.join('\n'),
@@ -286,13 +287,36 @@ function renderHome(app) {
       </div>
     </footer>`;
   const sb = searchBox({ autofocus: window.innerWidth > 640 });
-  $('#sb', app).replaceWith(sb);
+  const stage = document.createElement('div');
+  stage.className = 'sb-stage';
+  stage.appendChild(sb);
+  $('#sb', app).replaceWith(stage);
   $('[data-action=home-search]', app).addEventListener('click', () => sb.requestSubmit());
+  if (state.settings.parade !== false && !matchMedia('(prefers-reduced-motion: reduce)').matches) mountParade(stage);
+}
+
+// Meme parade: trending templates walk along and through the search bar on the home page.
+async function mountParade(stage) {
+  let tpl = [];
+  try { tpl = await fetchImgflip(); } catch { return; }
+  if (!tpl.length || !stage.isConnected) return;
+  const picks = tpl.slice(0, 40).sort(() => Math.random() - 0.5).slice(0, 12);
+  const parade = document.createElement('div');
+  parade.className = 'parade';
+  parade.setAttribute('aria-hidden', 'true');
+  parade.innerHTML = picks.map((t, i) => {
+    const lane = i % 3 === 0 ? 'top' : 'through';
+    const dur = 14 + Math.random() * 14; const delay = -(Math.random() * dur); const size = 38 + Math.round(Math.random() * 22);
+    const dir = i % 2 ? 'rtl' : 'ltr';
+    return `<div class="walker ${lane} ${dir}" style="--dur:${dur.toFixed(1)}s;--delay:${delay.toFixed(1)}s;--size:${size}px;--bob:${(0.42 + Math.random() * 0.3).toFixed(2)}s" data-action="parade-pick" data-q="${esc(t.title)}" title="${esc(t.title)}"><img src="${esc(t.thumb)}" alt="" loading="lazy" onerror="this.parentNode.remove()"></div>`;
+  }).join('');
+  stage.prepend(parade);
 }
 
 // ------------------------------------------------------------------ sessions (live search)
 function enabled(src) {
   const s = state.settings;
+  if (SOURCE_INFO[src]?.parent) src = SOURCE_INFO[src].parent;
   if (!s.sources[src]) return false;
   if (src === 'tenor') return Boolean(s.tenorKey);
   if (src === 'giphy') return Boolean(s.giphyKey);
@@ -318,14 +342,17 @@ function adaptersFor(q, p, page = 1) {
   const s = state.settings;
   const list = [];
   if (!q) {
-    if (enabled('lemmy')) list.push({ source: 'lemmy', run: async () => ({ items: await trendingLemmy({ communities: communities().slice(0, 8) }) }) });
+    if (enabled('lemmy')) list.push({ source: 'lemmy', run: async () => ({ items: await trendingLemmy({ communities: communities().slice(0, 12) }) }) });
+    if (enabled('mastodon')) list.push({ source: 'mastodon', run: async () => ({ items: await trendingMastodon() }) });
     if (enabled('reddit')) list.push({ source: 'reddit', run: async () => ({ items: (await fetchRedditPool({ subs: subs().slice(0, 4), count: 30 })).sort(() => Math.random() - 0.5) }) });
     if (enabled('imgflip')) list.push({ source: 'imgflip', run: async () => ({ items: await fetchImgflip() }) });
     if (enabled('library')) list.push({ source: 'library', run: () => libraryAdapter('', p) });
     return list;
   }
   if (enabled('lemmy')) list.push({ source: 'lemmy', run: ({ onPartial }) => searchLemmy(q, { communities: communities(), sort: p.sort, page, onPartial }) });
+  if (enabled('lemmy')) list.push({ source: 'lemmy_global', run: ({ onPartial }) => searchLemmyGlobal(q, { sort: p.sort, page, onPartial }) });
   if (page === 1) {
+    if (enabled('mastodon')) list.push({ source: 'mastodon', run: () => searchMastodon(q) });
     if (enabled('reddit')) list.push({ source: 'reddit', run: () => searchReddit(q, { subs: subs() }) });
     if (enabled('imgflip')) list.push({ source: 'imgflip', run: () => searchImgflip(q) });
     if (enabled('library')) list.push({ source: 'library', run: () => libraryAdapter(q, p) });
@@ -387,7 +414,7 @@ async function renderResults(app, isStale) {
           <option value="top" ${p.sort === 'top' ? 'selected' : ''}>Most upvoted</option>
         </select>
         <a class="chip ${p.safe ? 'on' : ''}" href="${searchUrl({ ...state.route.params, safe: p.safe ? '0' : '1' })}" title="Hide NSFW results">${sm(I.shield)} SafeSearch ${p.safe ? 'on' : 'off'}</a>
-        ${Object.keys(SOURCE_INFO).filter(enabled).map((src) => `<a class="chip ${p.src.includes(src) ? 'on' : ''}" href="${searchUrl({ ...state.route.params, src: toggleList(p.src, src), id: undefined })}"><img src="${favicon(SOURCE_INFO[src].site)}" alt="" style="width:14px;height:14px;border-radius:3px">${esc(SOURCE_INFO[src].label)}</a>`).join('')}
+        ${Object.keys(SOURCE_INFO).filter((k) => !SOURCE_INFO[k].hidden && enabled(k)).map((src) => `<a class="chip ${p.src.includes(src) ? 'on' : ''}" href="${searchUrl({ ...state.route.params, src: toggleList(p.src, src), id: undefined })}"><img src="${favicon(SOURCE_INFO[src].site)}" alt="" style="width:14px;height:14px;border-radius:3px">${esc(SOURCE_INFO[src].label)}</a>`).join('')}
         ${p.tab === 'library' ? `<button class="chip ${p.sel ? 'on' : ''}" data-action="toggle-select">${sm(I.select)} Select</button><a class="chip" href="#/upload">${sm(I.upload)} Upload</a>` : ''}
         ${p.src.length ? `<a class="chip" href="${searchUrl({ ...state.route.params, src: undefined })}">${sm(I.clear)} Clear filters</a>` : ''}
       </div>
@@ -430,7 +457,7 @@ function renderBody(root, session, p) {
   if (p.tab === 'library' && p.sel) parts.push(bulkBar());
 
   if (p.tab === 'all') parts.push(renderAll(session, p, items, shown));
-  else if (!items.length) parts.push(session.done ? emptyState(p) : skeletonGrid());
+  else if (!items.length) parts.push(session.done ? emptyState(p, session) : skeletonGrid());
   else parts.push(imageGrid(shown, p));
 
   if (items.length > shown.length) parts.push(`<div class="more"><button class="gbtn" data-action="more">More results (${items.length - shown.length} more loaded)</button></div>`);
@@ -448,8 +475,14 @@ function skeletonGrid() {
   return `<div class="img-grid">${Array.from({ length: 12 }, (_, i) => `<div class="img-card skeleton" style="--ar:${[1.33, 1, 1.78, 0.8, 1.2, 1][i % 6]}"><div class="thumb-wrap"></div><div class="cap"><span class="bar"></span><span class="bar short"></span></div></div>`).join('')}</div>`;
 }
 
-function emptyState(p) {
+function emptyState(p, session) {
   const noSources = !Object.keys(SOURCE_INFO).some(enabled);
+  const st = session ? Object.entries(session.status).filter(([k]) => !k.includes(':')) : [];
+  const allFailed = st.length > 0 && st.every(([, v]) => v === 'error' || v === 'skipped');
+  if (allFailed) return `<div class="empty">Memegle could not reach any source.
+    <div style="margin-top:12px">The browser blocked or failed every request to the meme sources (lemmy.world, meme-api.com, api.imgflip.com, mastodon.social).
+    This happens with strict content blockers, privacy modes or network filters. Allow those hosts or try another browser, then
+    <a href="javascript:location.reload()">reload</a>.</div></div>`;
   return `<div class="empty">
     ${p.q ? `Your search - <b>${esc(p.q)}</b> - did not match any memes${p.tab === 'gifs' ? ' in GIF sources' : p.tab === 'library' ? ' in My memes' : ''}.` : 'Nothing here yet.'}
     <div style="margin-top:12px">Suggestions:</div>
@@ -477,7 +510,7 @@ function moreSourcesLinks(q) {
 // ---------- All tab: Google web layout
 function renderAll(session, p, items, shown) {
   if (!items.length && !session.done) return `<div class="all-grid"><div class="all-main">${skeletonList()}</div></div>`;
-  if (!items.length) return emptyState(p);
+  if (!items.length) return emptyState(p, session);
   const images = items.filter((i) => i.kind !== 'template').slice(0, 8);
   const templates = items.filter((i) => i.kind === 'template').slice(0, 6);
   const list = shown.filter((i) => i.kind !== 'template');
@@ -900,7 +933,7 @@ async function renderSettings(app) {
 
       <h2 id="sources">Sources</h2>
       <div class="card">
-        ${['lemmy', 'reddit', 'imgflip', 'tenor', 'giphy', 'imgur', 'library'].map(srcRow).join('')}
+        ${['lemmy', 'reddit', 'imgflip', 'mastodon', 'tenor', 'giphy', 'imgur', 'library'].map(srcRow).join('')}
         <div class="src-row">
           <label class="switch"><input type="checkbox" data-source="wiki" ${s.sources.wiki ? 'checked' : ''}> <img src="${favicon('wikipedia.org')}" alt="" style="width:16px;height:16px"> <b>Wikipedia knowledge panel</b></label>
           <div class="src-desc">Short explanation of the meme next to the results, when Wikipedia has an article.</div>
@@ -918,6 +951,7 @@ async function renderSettings(app) {
       <div class="card">
         <div class="row"><label>Theme</label>
           <select class="gsel" data-setting="theme">${['system', 'light', 'dark'].map((t) => `<option value="${t}" ${s.theme === t ? 'selected' : ''}>${t[0].toUpperCase() + t.slice(1)}</option>`).join('')}</select></div>
+        <div class="row"><label class="switch"><input type="checkbox" data-setting="parade" ${s.parade !== false ? 'checked' : ''}> Meme parade on the home page (trending templates walk across the search bar)</label></div>
         <div class="row"><label>Results per page</label><input class="ginput" style="width:90px" type="number" min="10" max="200" data-setting="resultsPerPage" value="${s.resultsPerPage}"></div>
       </div>
 
@@ -1004,6 +1038,7 @@ async function onAction(action, el, e) {
   const statusEl = $('#d-status');
   switch (action) {
     case 'settings': go('settings'); break;
+    case 'parade-pick': pushHistory(el.dataset.q); go('search', { q: el.dataset.q, tab: 'images' }); break;
     case 'apps': $('#apps-menu')?.classList.toggle('hidden'); e.stopPropagation(); break;
     case 'lucky': {
       toast('Picking a meme...');
